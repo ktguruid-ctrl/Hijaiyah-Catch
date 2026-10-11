@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HIJAIYAH CATCH! - The Rainbow Letter Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            /* Primary Palette */
+            --sky-blue: #69C8FF;
+            --deep-navy: #183153;
+            --turquoise: #36D6C5;
+            --mint-green: #8FE3B0;
+            --sunshine-yellow: #FFD95A;
+            --coral-pink: #FF8DA8;
+            --peach: #FFB58A;
+            --lavender: #B7A1FF;
+            --royal-purple: #8068DF;
+            --cloud-white: #FFFDF7;
+            --warm-gold: #F5B942;
+
+            /* Level Theme Variables (Default to Level 1) */
+            --bg-color-top: var(--sky-blue);
+            --bg-color-bottom: var(--mint-green);
+            --ground-color: #7ade9f;
+            --cloud-color: rgba(255, 255, 255, 0.8);
+            
+            --hud-bg: rgba(255, 253, 247, 0.9);
+            --text-main: var(--deep-navy);
+            
+            /* Game Settings */
+            --bubble-size: 80px;
+            --basket-width: 120px;
+            --basket-height: 80px;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--deep-navy);
+            margin: 0;
+            overflow: hidden;
+            touch-action: none; /* Prevent default touch actions like scrolling */
+            user-select: none;
+            color: var(--text-main);
+        }
+
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            direction: rtl;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 1280px; /* Limit max width for ultra-wide screens */
+            margin: 0 auto;
+            background: linear-gradient(to bottom, var(--bg-color-top), var(--bg-color-bottom));
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: background 1s ease-in-out;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Premium Buttons */
+        .btn-premium {
+            background: linear-gradient(to bottom, var(--sunshine-yellow), var(--warm-gold));
+            color: var(--deep-navy);
+            font-weight: 900;
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            border-radius: 30px;
+            border: 4px solid var(--cloud-white);
+            box-shadow: 0 8px 0 #cc9428, 0 15px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-premium::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5%;
+            width: 90%;
+            height: 30%;
+            background: rgba(255,255,255,0.4);
+            border-radius: 20px;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(2px);
+            box-shadow: 0 6px 0 #cc9428, 0 10px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-premium:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #cc9428, 0 5px 10px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to bottom, var(--turquoise), #25a89a);
+            box-shadow: 0 8px 0 #1b7a70, 0 15px 20px rgba(0,0,0,0.2);
+            font-size: 1.2rem;
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), inset 0 0 20px rgba(255,255,255,0.5);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            background: linear-gradient(to bottom, var(--sky-blue), var(--lavender));
+        }
+        
+        .logo-container {
+            animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            text-shadow: 2px 2px 0px var(--cloud-white), -2px -2px 0px var(--cloud-white), 2px -2px 0px var(--cloud-white), -2px 2px 0px var(--cloud-white), 0 10px 15px rgba(0,0,0,0.3);
+        }
+        
+        .logo-title {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--sunshine-yellow);
+            -webkit-text-stroke: 3px var(--deep-navy);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo-subtitle {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--coral-pink);
+            -webkit-text-stroke: 1px var(--cloud-white);
+            background: var(--cloud-white);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            border: 2px solid var(--deep-navy);
+            box-shadow: 0 4px 0 var(--deep-navy);
+        }
+
+        /* Mascots */
+        .mascot-container {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            pointer-events: none;
+        }
+        
+        .mascot {
+            width: 150px;
+            height: 180px;
+            /* Placeholder for actual 3D art, using CSS shapes for now */
+            background-color: transparent;
+            position: relative;
+        }
+
+        /* CSS Mascot - Rafi */
+        .mascot-rafi::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 25px; width: 100px; height: 120px;
+            background: var(--turquoise); border-radius: 50px 50px 20px 20px; /* Body */
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
+        }
+        .mascot-rafi::after {
+            content: '';
+            position: absolute;
+            top: 10px; left: 35px; width: 80px; height: 80px;
+            background: var(--peach); border-radius: 50%; /* Head */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            border-top: 15px solid var(--deep-navy); /* Peci */
+        }
+        
+        /* CSS Mascot - Aisha */
+        .mascot-aisha::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 25px; width: 100px; height: 120px;
+            background: var(--coral-pink); border-radius: 50px 50px 20px 20px; /* Body */
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
+        }
+        .mascot-aisha::after {
+            content: '';
+            position: absolute;
+            top: 0px; left: 25px; width: 100px; height: 100px;
+            background: var(--lavender); border-radius: 50% 50% 20% 20%; /* Hijab */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            border-bottom: 20px solid var(--peach); /* Face area */
+        }
+
+        /* Game HUD */
+        #game-hud {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 20;
+            pointer-events: none; /* Let clicks pass through to pause button */
+        }
+        
+        .hud-top-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            pointer-events: auto;
+        }
+
+        .hud-panel {
+            background: var(--hud-bg);
+            border: 3px solid var(--cloud-white);
+            border-radius: 20px;
+            padding: 10px 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--warm-gold);
+            -webkit-text-stroke: 1px var(--deep-navy);
+        }
+
+        .hearts-container {
+            display: flex;
+            gap: 5px;
+        }
+        .heart {
+            width: 30px; height: 30px;
+            background-color: var(--coral-pink);
+            clip-path: path('M15,30 C15,30 0,18.5 0,9 C0,4 4,0 9,0 C12,0 15,2 15,5 C15,2 18,0 21,0 C26,0 30,4 30,9 C30,18.5 15,30 15,30 Z');
+            transition: transform 0.2s;
+        }
+        .heart.lost { background-color: #ccc; transform: scale(0.8); }
+
+        /* Mission Panel */
+        #mission-panel {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--hud-bg);
+            border: 4px solid var(--cloud-white);
+            border-radius: 20px;
+            padding: 10px 30px;
+            text-align: center;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .target-letter-display {
+            font-size: 4rem;
+            line-height: 1;
+            color: var(--deep-navy);
+            margin: 5px 0;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 15px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            border: 2px solid var(--cloud-white);
+        }
+        
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--turquoise), var(--mint-green));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Game Elements */
+        #arena {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        /* Background Layers */
+        .layer-bg, .layer-mid, .layer-fg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        
+        .ground {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 120px;
+            background: var(--ground-color);
+            border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+            box-shadow: inset 0 20px 20px rgba(255,255,255,0.3);
+        }
+
+        .bubble {
+            position: absolute;
+            width: var(--bubble-size);
+            height: var(--bubble-size);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.1));
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), inset -5px -5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: var(--deep-navy);
+            /* Add a subtle animation to make them look like they are floating */
+            animation: floatBubble 3s infinite ease-in-out alternate;
+            will-change: transform, top;
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            top: 10%; left: 15%; width: 25%; height: 15%;
+            background: white;
+            border-radius: 50%;
+            transform: rotate(-45deg);
+            opacity: 0.8;
+        }
+
+        #basket {
+            position: absolute;
+            bottom: 20px;
+            width: var(--basket-width);
+            height: var(--basket-height);
+            left: 50%;
+            transform: translateX(-50%);
+            /* CSS Representation of the magical net/basket */
+            background: linear-gradient(to bottom, transparent 30%, rgba(255,255,255,0.5) 30%);
+            border: 5px solid var(--sunshine-yellow);
+            border-top: none;
+            border-radius: 0 0 40px 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 -10px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            z-index: 15;
+            will-change: left;
+        }
+        
+        #basket::before {
+            content: '';
+            position: absolute;
+            top: -5px; width: 120%; height: 15px;
+            background: var(--coral-pink);
+            border-radius: 10px;
+            border: 2px solid white;
+        }
+
+        .basket-recoil { animation: recoil 0.2s ease-out; }
+        .basket-shake { animation: shake 0.3s ease-in-out; }
+
+        /* World Map */
+        #world-map-screen { background: var(--sky-blue); }
+        .map-path {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+            padding: 20px; max-width: 800px;
+        }
+        .level-node {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            border: 5px solid white;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; font-weight: 900;
+            position: relative; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .level-node.unlocked { background: var(--mint-green); border-color: var(--cloud-white); }
+        .level-node.completed { background: var(--sunshine-yellow); }
+        .level-node.locked { background: #ccc; cursor: not-allowed; }
+        .level-node.locked::after {
+            content: '🔒'; position: absolute; font-size: 1.2rem;
+        }
+        .level-node.unlocked:hover { transform: scale(1.1); }
+
+        /* Dialogs */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .overlay.active { display: flex; }
+        
+        /* Particle effects container */
+        #particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30;}
+        
+        /* Touch Controls */
+        #touch-controls {
+            position: absolute; bottom: 20px; left: 0; width: 100%;
+            display: none; justify-content: space-between; padding: 0 20px; z-index: 25;
+            pointer-events: none;
+        }
+        .touch-btn {
+            width: 80px; height: 80px;
+            background: rgba(255,255,255,0.5); border: 4px solid white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; pointer-events: auto; user-select: none;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        .touch-btn:active { background: rgba(255,255,255,0.8); transform: scale(0.95); }
+
+        /* Media Query for Touch Devices */
+        @media (hover: none) and (pointer: coarse) {
+            #touch-controls { display: flex; }
+            #basket { bottom: 120px; } /* Move basket up to clear buttons */
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes floatBubble {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        @keyframes recoil {
+            0% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(-50%) rotate(0); }
+            25% { transform: translateX(-55%) rotate(-5deg); }
+            75% { transform: translateX(-45%) rotate(5deg); }
+        }
+
+        .pop-animation { animation: popOut 0.3s ease-out forwards; }
+        @keyframes popOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* Collection Grid */
+        .collection-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px;
+            max-height: 60vh; overflow-y: auto; padding: 10px;
+        }
+        .card-letter {
+            background: white; border: 3px solid var(--cloud-white); border-radius: 15px;
+            aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative;
+        }
+        .card-letter.locked { background: #e0e0e0; color: #999; filter: grayscale(100%); }
+        .card-letter .letter-name { font-size: 0.8rem; font-family: 'Nunito'; margin-top: 5px; color: var(--deep-navy);}
+
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--sunshine-yellow);
+            -webkit-text-stroke: 1px var(--deep-navy);
+            pointer-events: none;
+            animation: floatUpFade 1s ease-out forwards;
+            z-index: 40;
+        }
+        @keyframes floatUpFade {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <div id="splash-screen" class="screen active">
+        <div class="logo-container">
+            <div class="logo-title">HIJAIYAH<br>CATCH!</div>
+            <div class="logo-subtitle">The Rainbow Letter Adventure</div>
+        </div>
+        <div class="mt-10 text-white font-bold animate-pulse">Memuat...</div>
+    </div>
+
+    <div id="main-menu-screen" class="screen">
+        <div class="logo-container mb-10">
+            <div class="logo-title text-5xl">HIJAIYAH CATCH!</div>
+            <div class="logo-subtitle text-sm">Tangkap Huruf, Raih Bintang!</div>
+        </div>
+        
+        <div class="flex flex-col gap-4 w-64 z-20">
+            <button class="btn-premium" onclick="Game.showScreen('world-map')">Mulai Petualangan</button>
+            <button class="btn-premium btn-secondary" onclick="Game.showScreen('collection')">Koleksi Huruf</button>
+            <button class="btn-premium btn-secondary" style="font-size: 1rem; padding: 10px;" onclick="Game.showScreen('tutorial')">Cara Bermain</button>
+            <button class="btn-premium btn-secondary" style="font-size: 1rem; padding: 10px;" onclick="Game.showScreen('settings')">Pengaturan</button>
+        </div>
+
+        <div class="mascot-container">
+            <div class="mascot mascot-rafi"></div>
+            <div class="mascot mascot-aisha"></div>
+        </div>
+    </div>
+
+    <div id="tutorial-screen" class="screen" style="background: var(--sky-blue);">
+        <div class="glass-panel max-w-2xl w-11/12">
+            <h2 class="text-3xl font-black text-deep-navy mb-4">Cara Bermain</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6 text-left">
+                <div class="bg-white/50 p-4 rounded-xl">
+                    <span class="text-2xl block mb-2">1️⃣</span>
+                    <p class="font-bold">Lihat Huruf Target</p>
+                    <p class="text-sm">Perhatikan kotak misi di atas untuk mengetahui huruf apa yang harus ditangkap.</p>
+                </div>
+                <div class="bg-white/50 p-4 rounded-xl">
+                    <span class="text-2xl block mb-2">2️⃣</span>
+                    <p class="font-bold">Gerakkan Keranjang</p>
+                    <p class="text-sm">Gunakan panah ◀️ ▶️ di keyboard atau tombol di layar sentuh.</p>
+                </div>
+                <div class="bg-white/50 p-4 rounded-xl">
+                    <span class="text-2xl block mb-2">3️⃣</span>
+                    <p class="font-bold">Tangkap yang Benar!</p>
+                    <p class="text-sm">Dapatkan poin jika menangkap huruf target. Hati-hati, huruf salah mengurangi nyawa 💔.</p>
+                </div>
+                <div class="bg-white/50 p-4 rounded-xl">
+                    <span class="text-2xl block mb-2">4️⃣</span>
+                    <p class="font-bold">Kumpulkan Bintang</p>
+                    <p class="text-sm">Selesaikan level untuk membuka area baru dan kembalikan Kristal Pelangi!</p>
+                </div>
+            </div>
+            <button class="btn-premium" onclick="Game.showScreen('main-menu')">Kembali</button>
+        </div>
+    </div>
+
+    <div id="world-map-screen" class="screen">
+        <div class="glass-panel mb-4">
+            <h2 class="text-3xl font-black text-deep-navy">Peta Petualangan</h2>
+            <p class="text-sm">Pilih level untuk memulai misi!</p>
+        </div>
+        <div class="map-path" id="map-nodes">
+            <!-- Nodes generated via JS -->
+        </div>
+        <button class="btn-premium btn-secondary mt-6" onclick="Game.showScreen('main-menu')">Kembali</button>
+    </div>
+
+    <div id="collection-screen" class="screen" style="background: var(--lavender);">
+        <div class="glass-panel w-11/12 max-w-3xl h-5/6 flex flex-col">
+            <h2 class="text-3xl font-black text-deep-navy mb-2">Koleksi Huruf</h2>
+            <div class="flex-1 overflow-hidden">
+                <div class="collection-grid" id="collection-grid">
+                    <!-- Cards generated via JS -->
+                </div>
+            </div>
+            <div class="mt-4">
+                <button class="btn-premium btn-secondary" onclick="Game.showScreen('main-menu')">Kembali</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-screen" class="screen" style="background: var(--peach);">
+        <div class="glass-panel w-11/12 max-w-md">
+            <h2 class="text-3xl font-black text-deep-navy mb-6">Pengaturan</h2>
+            
+            <div class="flex justify-between items-center bg-white/50 p-4 rounded-xl mb-4">
+                <span class="font-bold text-xl">Suara & Musik</span>
+                <button id="toggle-sound-btn" class="text-3xl bg-white rounded-full w-12 h-12 shadow" onclick="Game.toggleSound()">🔊</button>
+            </div>
+
+            <div class="flex justify-between items-center bg-white/50 p-4 rounded-xl mb-6">
+                <span class="font-bold text-xl">Reset Progres</span>
+                <button class="bg-red-500 text-white font-bold py-2 px-4 rounded-xl shadow" onclick="Game.confirmReset()">Reset</button>
+            </div>
+
+            <button class="btn-premium w-full" onclick="Game.showScreen('main-menu')">Simpan & Kembali</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <!-- Environment Layers -->
+        <div id="layer-bg" class="layer-bg"></div>
+        <div id="layer-mid" class="layer-mid"></div>
+        <div id="layer-fg" class="layer-fg">
+            <div class="ground" id="ground"></div>
+        </div>
+
+        <!-- HUD -->
+        <div id="game-hud">
+            <div class="hud-top-bar">
+                <div class="hud-panel cursor-pointer" onclick="Game.pauseGame()">
+                    <span class="text-2xl">⏸️</span>
+                </div>
+                <div class="hud-panel">
+                    <span class="font-bold">Skor:</span>
+                    <span class="score-text" id="score-display">0</span>
+                </div>
+                <div class="hud-panel hearts-container" id="hearts-display">
+                    <div class="heart"></div><div class="heart"></div><div class="heart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mission Panel -->
+        <div id="mission-panel">
+            <div class="text-sm font-bold text-coral-pink">MISI HARI INI</div>
+            <div class="target-letter-display arabic-text" id="target-letter">ب</div>
+            <div class="font-bold text-lg" id="target-name">Ba</div>
+            <div class="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- Gameplay Area -->
+        <div id="arena">
+            <!-- Bubbles appended here -->
+        </div>
+        
+        <!-- Particle Layer -->
+        <div id="particles"></div>
+
+        <!-- Player Basket -->
+        <div id="basket"></div>
+
+        <!-- Touch Controls -->
+        <div id="touch-controls">
+            <div class="touch-btn" id="btn-left">◀️</div>
+            <div class="touch-btn" id="btn-right">▶️</div>
+        </div>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div id="pause-overlay" class="overlay">
+        <div class="glass-panel">
+            <h2 class="text-4xl font-black text-deep-navy mb-6">JEDA</h2>
+            <div class="flex flex-col gap-4">
+                <button class="btn-premium" onclick="Game.resumeGame()">Lanjutkan</button>
+                <button class="btn-premium btn-secondary" onclick="Game.quitToMap()">Keluar ke Peta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Complete Overlay -->
+    <div id="level-complete-overlay" class="overlay">
+        <div class="glass-panel">
+            <h2 class="text-4xl font-black text-turquoise mb-2 text-shadow">ALHAMDULILLAH!</h2>
+            <h3 class="text-2xl font-bold text-deep-navy mb-4">Level Selesai</h3>
+            
+            <div class="flex justify-center gap-2 mb-4 text-5xl" id="star-display">
+                ⭐ ⭐ ⭐
+            </div>
+            
+            <div class="bg-white/50 p-4 rounded-xl mb-6">
+                <p class="font-bold text-xl">Skor Akhir: <span id="final-score" class="text-warm-gold">0</span></p>
+            </div>
+            
+            <div class="flex gap-4">
+                <button class="btn-premium btn-secondary" onclick="Game.quitToMap()">Peta</button>
+                <button class="btn-premium" onclick="Game.nextLevel()" id="btn-next-level">Lanjut</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="game-over-overlay" class="overlay">
+        <div class="glass-panel border-coral-pink">
+            <h2 class="text-4xl font-black text-coral-pink mb-2">YAH, NYAWA HABIS!</h2>
+            <p class="text-lg font-bold text-deep-navy mb-6">Jangan menyerah, ayo coba lagi!</p>
+            
+            <div class="flex gap-4">
+                <button class="btn-premium btn-secondary" onclick="Game.quitToMap()">Peta</button>
+                <button class="btn-premium" onclick="Game.restartLevel()">Coba Lagi</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Victory Overlay -->
+    <div id="victory-overlay" class="overlay">
+         <div class="glass-panel bg-gradient-to-br from-sunshine-yellow to-warm-gold">
+            <h2 class="text-5xl font-black text-white mb-2 text-shadow">LUAR BIASA!</h2>
+            <p class="text-xl font-bold text-deep-navy mb-4">Kristal Pelangi Telah Pulih!</p>
+            <div class="text-6xl mb-4">🏆</div>
+            <p class="font-bold mb-6">Kamu adalah Master Hijaiyah!</p>
+            <button class="btn-premium bg-white text-deep-navy" onclick="Game.showScreen('main-menu')">Main Lagi</button>
+        </div>
+    </div>
+    
+    <div class="absolute bottom-2 right-2 text-xs text-white/50 z-50 pointer-events-none">HIJAIYAH CATCH! | Game Edukasi PAI</div>
+
+</div>
+
+<script>
+/**
+ * HIJAIYAH CATCH! - Logic & Engine
+ */
+
+// --- 1. Data Definitions ---
+const HijaiyahData = [
+    { id: 1, char: 'ا', name: 'Alif' },
+    { id: 2, char: 'ب', name: 'Ba' },
+    { id: 3, char: 'ت', name: 'Ta' },
+    { id: 4, char: 'ث', name: 'Tsa' },
+    { id: 5, char: 'ج', name: 'Jim' },
+    { id: 6, char: 'ح', name: 'Ha' }, // Ha tebal/tenggorokan
+    { id: 7, char: 'خ', name: 'Kha' },
+    { id: 8, char: 'د', name: 'Dal' },
+    { id: 9, char: 'ذ', name: 'Dzal' },
+    { id: 10, char: 'ر', name: 'Ra' },
+    { id: 11, char: 'ز', name: 'Zai' },
+    { id: 12, char: 'س', name: 'Sin' },
+    { id: 13, char: 'ش', name: 'Syin' },
+    { id: 14, char: 'ص', name: 'Shad' },
+    { id: 15, char: 'ض', name: 'Dhad' },
+    { id: 16, char: 'ط', name: 'Tha' },
+    { id: 17, char: 'ظ', name: 'Zha' },
+    { id: 18, char: 'ع', name: '\'Ain' },
+    { id: 19, char: 'غ', name: 'Ghain' },
+    { id: 20, char: 'ف', name: 'Fa' },
+    { id: 21, char: 'ق', name: 'Qaf' },
+    { id: 22, char: 'ك', name: 'Kaf' },
+    { id: 23, char: 'ل', name: 'Lam' },
+    { id: 24, char: 'م', name: 'Mim' },
+    { id: 25, char: 'ن', name: 'Nun' },
+    { id: 26, char: 'و', name: 'Wau' },
+    { id: 27, char: 'ه', name: 'Ha' }, // Ha ringan
+    { id: 28, char: 'ي', name: 'Ya' },
+    { id: 29, char: 'ء', name: 'Hamzah' },
+    { id: 30, char: 'لا', name: 'Lam Alif' }
+];
+
+const Levels = [
+    { id: 1, title: "Gerbang Alif", targets: [1, 2, 3], theme: { top: '#69C8FF', bottom: '#8FE3B0', ground: '#7ade9f' }, time: 60, speedMultiplier: 1 },
+    { id: 2, title: "Taman Titik", targets: [4, 5, 6], theme: { top: '#FFB58A', bottom: '#FFD95A', ground: '#e0c75c' }, time: 60, speedMultiplier: 1.1 },
+    { id: 3, title: "Gua Misteri", targets: [7, 8, 9], theme: { top: '#8068DF', bottom: '#B7A1FF', ground: '#6a55bf' }, time: 60, speedMultiplier: 1.2 },
+    { id: 4, title: "Lembah Pelangi", targets: [10, 11, 12], theme: { top: '#69C8FF', bottom: '#FF8DA8', ground: '#e07992' }, time: 55, speedMultiplier: 1.3 },
+    { id: 5, title: "Hutan Huruf", targets: [13, 14, 15], theme: { top: '#8FE3B0', bottom: '#36D6C5', ground: '#2da89a' }, time: 55, speedMultiplier: 1.4 },
+    { id: 6, title: "Bukit Bintang", targets: [16, 17, 18], theme: { top: '#183153', bottom: '#8068DF', ground: '#122540' }, time: 55, speedMultiplier: 1.5 },
+    { id: 7, title: "Istana Cahaya", targets: [19, 20, 21], theme: { top: '#FFD95A', bottom: '#F5B942', ground: '#d9a338' }, time: 50, speedMultiplier: 1.6 },
+    { id: 8, title: "Sungai Gelembung", targets: [22, 23, 24], theme: { top: '#36D6C5', bottom: '#69C8FF', ground: '#4dbfd1' }, time: 50, speedMultiplier: 1.7 },
+    { id: 9, title: "Kota Awan", targets: [25, 26, 27], theme: { top: '#FFFDF7', bottom: '#69C8FF', ground: '#d9eaff' }, time: 50, speedMultiplier: 1.8 },
+    { id: 10, title: "Kastel Hijaiyah", targets: [28, 29, 30], theme: { top: '#B7A1FF', bottom: '#FF8DA8', ground: '#a38ce3' }, time: 50, speedMultiplier: 1.9 },
+    { id: 11, title: "Rainbow Challenge", targets: 'ALL', theme: { top: '#183153', bottom: '#8068DF', ground: '#F5B942' }, time: 45, speedMultiplier: 2.2, isBonus: true }
+];
+
+// --- 2. State Management ---
+const GameState = {
+    currentScreen: 'splash',
+    unlockedLevels: 1, // Max 11
+    collectedLetters: [], // Array of IDs
+    soundEnabled: true,
+    
+    // Active Level State
+    activeLevel: null,
+    score: 0,
+    lives: 3,
+    targetIndex: 0, // Which target currently looking for (0, 1, or 2)
+    currentTargetId: null,
+    isPlaying: false,
+    isPaused: false,
+    
+    // Engine State
+    lastTime: 0,
+    animationFrameId: null,
+    bubbles: [],
+    basketPos: 50, // Percentage 0-100
+    basketSpeed: 0,
+    keys: { left: false, right: false }
+};
+
+// Load from LocalStorage
+function loadProgress() {
+    const saved = localStorage.getItem('hijaiyahCatchProgress');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            GameState.unlockedLevels = data.unlockedLevels || 1;
+            GameState.collectedLetters = data.collectedLetters || [];
+            GameState.soundEnabled = data.soundEnabled !== undefined ? data.soundEnabled : true;
+            updateSoundUI();
+        } catch (e) { console.error("Error loading progress"); }
+    }
+}
+
+function saveProgress() {
+    localStorage.setItem('hijaiyahCatchProgress', JSON.stringify({
+        unlockedLevels: GameState.unlockedLevels,
+        collectedLetters: GameState.collectedLetters,
+        soundEnabled: GameState.soundEnabled
+    }));
+}
+
+// --- 3. Audio System (Web Audio API) ---
+const AudioSys = {
+    ctx: null,
+    init() {
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+    },
+    playTone(freq, type, duration, vol=0.1) {
+        if (!GameState.soundEnabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    },
+    sfxCorrect() {
+        this.playTone(523.25, 'sine', 0.1, 0.2); // C5
+        setTimeout(() => this.playTone(659.25, 'sine', 0.2, 0.2), 100); // E5
+        setTimeout(() => this.playTone(783.99, 'sine', 0.3, 0.2), 200); // G5
+    },
+    sfxWrong() {
+        this.playTone(200, 'sawtooth', 0.3, 0.1);
+        setTimeout(() => this.playTone(150, 'sawtooth', 0.4, 0.1), 150);
+    },
+    sfxWin() {
+        [440, 554, 659, 880].forEach((freq, i) => {
+            setTimeout(() => this.playTone(freq, 'square', 0.5, 0.1), i * 150);
+        });
+    },
+    sfxPop() {
+        this.playTone(800, 'sine', 0.05, 0.05);
+    }
+};
+
+// --- 4. Main Game Object & UI Logic ---
+const Game = {
+    init() {
+        loadProgress();
+        this.generateMap();
+        this.generateCollection();
+        this.setupInputs();
+        
+        // Splash screen delay
+        setTimeout(() => {
+            this.showScreen('main-menu');
+        }, 2000);
+        
+        // Init audio on first click anywhere
+        document.body.addEventListener('click', () => AudioSys.init(), {once:true});
+    },
+
+    showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId + '-screen').classList.add('active');
+        GameState.currentScreen = screenId;
+        
+        if (screenId === 'world-map') this.updateMapUI();
+        if (screenId === 'collection') this.updateCollectionUI();
+    },
+
+    generateMap() {
+        const container = document.getElementById('map-nodes');
+        container.innerHTML = '';
+        Levels.forEach(level => {
+            const node = document.createElement('div');
+            node.className = `level-node ${level.id <= GameState.unlockedLevels ? (level.id < GameState.unlockedLevels ? 'completed' : 'unlocked') : 'locked'}`;
+            node.innerText = level.id === 11 ? '★' : level.id;
+            
+            if (level.id <= GameState.unlockedLevels) {
+                node.onclick = () => this.startLevel(level.id);
+            }
+            container.appendChild(node);
+        });
+    },
+
+    updateMapUI() {
+        const nodes = document.querySelectorAll('.level-node');
+        nodes.forEach((node, index) => {
+            const levelId = index + 1;
+            node.className = `level-node ${levelId <= GameState.unlockedLevels ? (levelId < GameState.unlockedLevels ? 'completed' : 'unlocked') : 'locked'}`;
+            node.onclick = levelId <= GameState.unlockedLevels ? () => this.startLevel(levelId) : null;
+        });
+    },
+
+    generateCollection() {
+        const container = document.getElementById('collection-grid');
+        container.innerHTML = '';
+        HijaiyahData.forEach(char => {
+            const card = document.createElement('div');
+            card.className = `card-letter locked`;
+            card.id = `card-${char.id}`;
+            card.innerHTML = `
+                <div class="arabic-text">${char.char}</div>
+                <div class="letter-name">${char.name}</div>
+            `;
+            container.appendChild(card);
+        });
+    },
+
+    updateCollectionUI() {
+        GameState.collectedLetters.forEach(id => {
+            const card = document.getElementById(`card-${id}`);
+            if (card) card.classList.remove('locked');
+        });
+    },
+
+    toggleSound() {
+        GameState.soundEnabled = !GameState.soundEnabled;
+        updateSoundUI();
+        saveProgress();
+    },
+    
+    confirmReset() {
+        // Since we can't use alert/confirm, we'll just do it or create a custom modal. 
+        // For simplicity in this single file without huge modal logic, we reset directly 
+        // but normally a custom modal is better.
+        GameState.unlockedLevels = 1;
+        GameState.collectedLetters = [];
+        saveProgress();
+        this.generateMap();
+        this.generateCollection();
+        this.showScreen('main-menu');
+    },
+
+    // --- 5. Gameplay Flow ---
+    startLevel(levelId) {
+        const levelData = Levels.find(l => l.id === levelId);
+        if (!levelData) return;
+
+        GameState.activeLevel = levelData;
+        GameState.score = 0;
+        GameState.lives = 3;
+        GameState.targetIndex = 0;
+        GameState.isPlaying = true;
+        GameState.isPaused = false;
+        GameState.bubbles = [];
+        GameState.basketPos = 50;
+        
+        // Setup Theme
+        const root = document.documentElement;
+        root.style.setProperty('--bg-color-top', levelData.theme.top);
+        root.style.setProperty('--bg-color-bottom', levelData.theme.bottom);
+        root.style.setProperty('--ground-color', levelData.theme.ground);
+
+        this.setNextTarget();
+        this.updateHUD();
+        this.showScreen('game');
+        
+        // Clear previous arena
+        document.getElementById('arena').innerHTML = '';
+        document.getElementById('particles').innerHTML = '';
+        
+        // Start Engine
+        GameState.lastTime = performance.now();
+        if (GameState.animationFrameId) cancelAnimationFrame(GameState.animationFrameId);
+        GameState.animationFrameId = requestAnimationFrame(gameLoop);
+    },
+
+    setNextTarget() {
+        const level = GameState.activeLevel;
+        if (level.isBonus) {
+            // Random target for bonus
+            const randChar = HijaiyahData[Math.floor(Math.random() * HijaiyahData.length)];
+            GameState.currentTargetId = randChar.id;
+        } else {
+            if (GameState.targetIndex < level.targets.length) {
+                GameState.currentTargetId = level.targets[GameState.targetIndex];
+            } else {
+                this.levelComplete();
+                return;
+            }
+        }
+        
+        const targetData = HijaiyahData.find(h => h.id === GameState.currentTargetId);
+        document.getElementById('target-letter').innerText = targetData.char;
+        document.getElementById('target-name').innerText = targetData.name;
+        
+        // Update Progress Bar
+        const progress = level.isBonus ? 
+            (GameState.score / 500) * 100 : // Arbitrary goal for bonus
+            (GameState.targetIndex / level.targets.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progress}%`;
+    },
+
+    updateHUD() {
+        document.getElementById('score-display').innerText = GameState.score;
+        const hearts = document.querySelectorAll('.heart');
+        hearts.forEach((h, i) => {
+            if (i < GameState.lives) h.classList.remove('lost');
+            else h.classList.add('lost');
+        });
+    },
+
+    pauseGame() {
+        if (!GameState.isPlaying) return;
+        GameState.isPaused = true;
+        document.getElementById('pause-overlay').classList.add('active');
+    },
+
+    resumeGame() {
+        GameState.isPaused = false;
+        document.getElementById('pause-overlay').classList.remove('active');
+        GameState.lastTime = performance.now(); // Prevent large delta jump
+        requestAnimationFrame(gameLoop);
+    },
+
+    quitToMap() {
+        GameState.isPlaying = false;
+        cancelAnimationFrame(GameState.animationFrameId);
+        document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+        this.showScreen('world-map');
+    },
+
+    restartLevel() {
+        document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+        this.startLevel(GameState.activeLevel.id);
+    },
+
+    levelComplete() {
+        GameState.isPlaying = false;
+        AudioSys.sfxWin();
+        
+        // Save progress
+        if (GameState.activeLevel.id === GameState.unlockedLevels && GameState.unlockedLevels < 11) {
+            GameState.unlockedLevels++;
+        }
+        
+        // Add collected letters to collection
+        if (!GameState.activeLevel.isBonus) {
+            GameState.activeLevel.targets.forEach(id => {
+                if (!GameState.collectedLetters.includes(id)) {
+                    GameState.collectedLetters.push(id);
+                }
+            });
+        }
+        saveProgress();
+
+        document.getElementById('final-score').innerText = GameState.score;
+        
+        // Calculate stars based on lives
+        let stars = "⭐";
+        if (GameState.lives >= 2) stars = "⭐ ⭐";
+        if (GameState.lives === 3) stars = "⭐ ⭐ ⭐";
+        document.getElementById('star-display').innerText = stars;
+
+        if (GameState.activeLevel.id === 10) {
+            document.getElementById('victory-overlay').classList.add('active');
+        } else {
+            const btnNext = document.getElementById('btn-next-level');
+            if (GameState.activeLevel.id === 11) btnNext.style.display = 'none';
+            else btnNext.style.display = 'block';
+            
+            document.getElementById('level-complete-overlay').classList.add('active');
+        }
+    },
+
+    nextLevel() {
+        document.getElementById('level-complete-overlay').classList.remove('active');
+        const nextId = GameState.activeLevel.id + 1;
+        if (nextId <= 11) this.startLevel(nextId);
+        else this.showScreen('world-map');
+    },
+
+    gameOver() {
+        GameState.isPlaying = false;
+        document.getElementById('game-over-overlay').classList.add('active');
+    },
+
+    // --- 6. Input Handling ---
+    setupInputs() {
+        window.addEventListener('keydown', (e) => {
+            if (!GameState.isPlaying || GameState.isPaused) return;
+            if (e.key === 'ArrowLeft' || e.key === 'a') GameState.keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') GameState.keys.right = true;
+            if (e.key === 'Escape') this.pauseGame();
+            if (e.key === ' ') {
+                GameState.isPaused ? this.resumeGame() : this.pauseGame();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') GameState.keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') GameState.keys.right = false;
+        });
+
+        // Touch controls
+        const btnL = document.getElementById('btn-left');
+        const btnR = document.getElementById('btn-right');
+        
+        const handleTouchStart = (dir) => (e) => { e.preventDefault(); GameState.keys[dir] = true; };
+        const handleTouchEnd = (dir) => (e) => { e.preventDefault(); GameState.keys[dir] = false; };
+
+        btnL.addEventListener('touchstart', handleTouchStart('left'), {passive: false});
+        btnL.addEventListener('touchend', handleTouchEnd('left'), {passive: false});
+        btnR.addEventListener('touchstart', handleTouchStart('right'), {passive: false});
+        btnR.addEventListener('touchend', handleTouchEnd('right'), {passive: false});
+    }
+};
+
+function updateSoundUI() {
+    const btn = document.getElementById('toggle-sound-btn');
+    if(btn) btn.innerText = GameState.soundEnabled ? '🔊' : '🔇';
+}
+
+// --- 7. Game Engine Loop (Physics & Logic) ---
+const BUBBLE_SPAWN_RATE = 1500; // ms
+let lastBubbleSpawn = 0;
+
+function gameLoop(timestamp) {
+    if (!GameState.isPlaying) return;
+    if (GameState.isPaused) {
+        GameState.animationFrameId = requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    const deltaTime = timestamp - GameState.lastTime;
+    GameState.lastTime = timestamp;
+
+    updatePlayer(deltaTime);
+    updateBubbles(deltaTime, timestamp);
+    checkCollisions();
+
+    GameState.animationFrameId = requestAnimationFrame(gameLoop);
+}
+
+function updatePlayer(dt) {
+    const speed = 0.05 * dt; // Movement speed
+    if (GameState.keys.left) GameState.basketPos -= speed;
+    if (GameState.keys.right) GameState.basketPos += speed;
+
+    // Clamp position 5% to 95%
+    GameState.basketPos = Math.max(5, Math.min(95, GameState.basketPos));
+    
+    document.getElementById('basket').style.left = `${GameState.basketPos}%`;
+}
+
+function updateBubbles(dt, timestamp) {
+    const arena = document.getElementById('arena');
+    const speedMult = GameState.activeLevel.speedMultiplier;
+    
+    // Spawn new bubble
+    if (timestamp - lastBubbleSpawn > BUBBLE_SPAWN_RATE / speedMult) {
+        spawnBubble(arena);
+        lastBubbleSpawn = timestamp;
+    }
+
+    // Move bubbles
+    for (let i = GameState.bubbles.length - 1; i >= 0; i--) {
+        const bubble = GameState.bubbles[i];
+        
+        // Base speed + slight random variation
+        const fallSpeed = (0.015 * speedMult + bubble.speedVar) * dt;
+        bubble.y += fallSpeed;
+        
+        // Slower horizontal drift
+        bubble.x += bubble.drift * dt * 0.01;
+
+        if (bubble.y > 110) { // Off bottom screen
+            if (bubble.el && bubble.el.parentNode) {
+                bubble.el.parentNode.removeChild(bubble.el);
+            }
+            GameState.bubbles.splice(i, 1);
+        } else {
+            if(bubble.el) {
+                bubble.el.style.top = `${bubble.y}%`;
+                bubble.el.style.left = `${bubble.x}%`;
+            }
+        }
+    }
+}
+
+function spawnBubble(arena) {
+    // 40% chance to be target, 60% chance random other letter
+    const isTarget = Math.random() < 0.4;
+    let charData;
+    
+    if (isTarget) {
+        charData = HijaiyahData.find(h => h.id === GameState.currentTargetId);
+    } else {
+        // Pick random NOT target
+        let pool = HijaiyahData.filter(h => h.id !== GameState.currentTargetId);
+        charData = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const el = document.createElement('div');
+    el.className = 'bubble arabic-text';
+    el.innerText = charData.char;
+    
+    // Random start X (10% to 90%)
+    const startX = 10 + Math.random() * 80;
+    el.style.left = `${startX}%`;
+    el.style.top = `-10%`; // Start above screen
+
+    arena.appendChild(el);
+
+    GameState.bubbles.push({
+        id: charData.id,
+        el: el,
+        x: startX,
+        y: -10,
+        speedVar: (Math.random() - 0.5) * 0.005, // Slight random speed diff
+        drift: (Math.random() - 0.5), // Horizontal drift
+        isCaught: false
+    });
+}
+
+function checkCollisions() {
+    const basket = document.getElementById('basket');
+    const basketRect = basket.getBoundingClientRect();
+    
+    // Make hit box slightly smaller than visual basket
+    const hitBox = {
+        top: basketRect.top + 20,
+        bottom: basketRect.bottom,
+        left: basketRect.left + 10,
+        right: basketRect.right - 10
+    };
+
+    for (let i = GameState.bubbles.length - 1; i >= 0; i--) {
+        const bubble = GameState.bubbles[i];
+        if (bubble.isCaught || !bubble.el) continue;
+
+        const bubbleRect = bubble.el.getBoundingClientRect();
+        
+        // Simple AABB collision
+        if (bubbleRect.bottom > hitBox.top &&
+            bubbleRect.top < hitBox.bottom &&
+            bubbleRect.right > hitBox.left &&
+            bubbleRect.left < hitBox.right) {
+            
+            handleCatch(bubble, i);
+        }
+    }
+}
+
+function handleCatch(bubble, index) {
+    bubble.isCaught = true;
+    const isCorrect = (bubble.id === GameState.currentTargetId);
+    
+    // Visual feedback on basket
+    const basket = document.getElementById('basket');
+    basket.classList.remove('basket-recoil', 'basket-shake');
+    void basket.offsetWidth; // trigger reflow
+    basket.classList.add(isCorrect ? 'basket-recoil' : 'basket-shake');
+
+    // Visual feedback on bubble
+    bubble.el.classList.add('pop-animation');
+    setTimeout(() => {
+        if (bubble.el && bubble.el.parentNode) {
+            bubble.el.parentNode.removeChild(bubble.el);
+        }
+    }, 300);
+    
+    // Remove from array immediately so it can't be caught again
+    GameState.bubbles.splice(index, 1);
+
+    if (isCorrect) {
+        AudioSys.sfxCorrect();
+        GameState.score += 10;
+        createFloatingText('+10', bubble.el.getBoundingClientRect());
+        
+        if (GameState.activeLevel.isBonus) {
+            Game.setNextTarget(); // Infinite targets in bonus
+        } else {
+            GameState.targetIndex++;
+            Game.setNextTarget();
+        }
+    } else {
+        AudioSys.sfxWrong();
+        GameState.lives--;
+        createFloatingText('❌', bubble.el.getBoundingClientRect(), '#FF8DA8');
+        
+        if (GameState.lives <= 0) {
+            Game.updateHUD(); // Update before showing game over
+            Game.gameOver();
+        }
+    }
+    
+    Game.updateHUD();
+}
+
+function createFloatingText(text, rect, color = 'var(--sunshine-yellow)') {
+    const el = document.createElement('div');
+    el.className = 'floating-text';
+    el.innerText = text;
+    el.style.left = `${rect.left + rect.width/2}px`;
+    el.style.top = `${rect.top}px`;
+    if(color) el.style.color = color;
+    document.getElementById('particles').appendChild(el);
+    setTimeout(() => {
+        if(el.parentNode) el.parentNode.removeChild(el);
+    }, 1000);
+}
+
+// Boot the game
+window.onload = () => Game.init();
+
+</script>
+</body>
+</html>
